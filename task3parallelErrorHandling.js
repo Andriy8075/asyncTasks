@@ -1,5 +1,5 @@
 async function asyncMapper(array, asyncFunc, signal) {
-    const promises = array.map(async (item) => {
+      const promises = array.map(async (item) => {
         const result = await asyncFunc(item);
         if (signal.aborted) {
             throw new Error('aborted');
@@ -7,13 +7,12 @@ async function asyncMapper(array, asyncFunc, signal) {
         return result;
     });
     const newArray = await Promise.allSettled(promises);
-    const final = newArray.map(item => {
-        if (item.status === 'fulfilled') {
-            return item.value;
-        }
-        else return item.reason;
-    })
-    return final;
+
+    const errors = newArray.filter(result =>result.status === 'rejected').map(error => error.reason);
+    if (errors.length > 0) {
+        throw new AggregateError(errors, "MESSAGE");
+    }
+    return newArray.map(item => item.value);
 }
 
 async function asyncDoubler(arg) {

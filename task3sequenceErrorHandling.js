@@ -1,5 +1,5 @@
 async function asyncMapper (array, asyncFunc, signal) {
-    return new Promise(async(resolve, reject) => {
+    const promise = new Promise(async(resolve, reject) => {
         let count = 0
         const newArray = [];
 
@@ -7,7 +7,7 @@ async function asyncMapper (array, asyncFunc, signal) {
             count++;
             if (signal.aborted) {
                 reject('aborted');
-                return true
+                return true;
             }
             if (count === array.length) {
                 resolve(newArray);
@@ -19,12 +19,20 @@ async function asyncMapper (array, asyncFunc, signal) {
             if(counter()) return;
         }
     })
+    const result = await promise.then((array) => {
+        const errors = array.filter(result => result instanceof Error);
+        if (errors.length > 0) {
+            throw new AggregateError(errors, "MESSAGE");
+        }
+        return array;
+    })
+    return result
 }
 
 async function asyncDoubler (arg) {
     return new Promise((resolve) => {
         setTimeout(() => {
-            const isError = parseInt(Math.random() * 1.8);
+            const isError = parseInt(Math.random() * 1.1);
             if (isError) resolve(new Error("number of isError is bigger than 0"));
             else resolve(arg * 2);
         }, Math.random() * 2000)

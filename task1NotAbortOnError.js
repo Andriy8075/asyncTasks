@@ -4,28 +4,30 @@ const asyncMapper = (array, asyncFunction, callbackAfterAll, ...callbackArgs) =>
 
     const newArray = [];
 
-    const callbackAfterEach = (index) => (element) => {
+    const callbackAfterEach = (index) => (error, element) => {
         counter++;
+        if (error) {
+            newArray[index] = error;
+            return;
+        }
         newArray[index] = element;
         if (counter === arrayLength) callbackAfterAll(newArray, ...callbackArgs);
     }
 
-    const cashIndex = (index) => {
-        return callbackAfterEach(index);
-    }
-
     for (let index = 0; index < arrayLength; index++) {
-        const callbackWithIndex = cashIndex(index)
+        const callbackWithIndex = callbackAfterEach(index);
         asyncFunction(array[index], callbackWithIndex);
     }
 }
 
 const asyncDoubler = (arg, callback) => {
     setTimeout(() => {
-        callback(arg*2)
-    }, Math.random() * 2000)
+        const isError = parseInt(Math.random() * 1.8);
+        if(isError) callback(new Error("error in callback"));
+        else callback(null, arg*2);
+    }, Math.random() * 2000);
 }
 
-const myArray = [1, 3, 6, 2, 6, 55]
+const myArray = [1, 3, 6, 2, 6, 55];
 
 asyncMapper(myArray, asyncDoubler, console.log);

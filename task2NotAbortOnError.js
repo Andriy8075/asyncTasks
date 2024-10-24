@@ -3,7 +3,7 @@ const asyncMapper = (array, asyncFunc) => {
         let count = 0
         const newArray = [];
 
-        const counter = () => {
+        const callbackAfterEach = () => {
             count++;
             if (count === array.length) {
                 resolve(newArray);
@@ -12,15 +12,21 @@ const asyncMapper = (array, asyncFunc) => {
         for (let i = 0; i < array.length; i++) {
             asyncFunc(array[i]).then((value) => {
                 newArray[i] = value;
-                counter()
+                callbackAfterEach()
+            },
+            (error) => {
+                newArray[i] = error;
+                callbackAfterEach()
             });
         }
     })
 }
 
 const asyncDoubler = (arg) => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         setTimeout(() => {
+            const isError = parseInt(Math.random() * 1.8);
+            if (isError) reject(new Error("number of isError is bigger than 0"));
             resolve(arg*2);
         }, Math.random() * 2000)
     })
